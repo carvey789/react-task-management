@@ -1,0 +1,33 @@
+.rdp {
+  @apply p-2 bg-white m-0 border-none;
+}
+
+.rdp-caption {
+  @apply flex justify-between items-center pb-2 border-b;
+}
+
+.rdp-caption_label {
+  @apply font-bold text-sm;
+}
+
+.rdp-nav {
+  @apply flex gap-2;
+}
+
+.rdp-nav_icon {
+  @apply w-2 h-2;
+}
+
+.rdp-table {
+  @apply mt-2 border-collapse border-spacing-3;
+}
+
+.rdp-head {
+  @apply text-[10px] text-black/40;
+}
+
+.rdp-day_selected,
+.rdp-day_selected:focus-visible,
+.rdp-day_selected:hover {
+  @apply bg-red-accent;
+}
