@@ -26,9 +26,7 @@ export const TimePicker = ({
     }
   };
 
-  const handleSaveTime: React.FormEventHandler = (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleSaveTime: React.FormEventHandler = () => {
     if (timeValue && isTimeValid) {
       const [hour, minute] = (timeValue as string).split(":");
       const newDate = dayjs(selectedDate)

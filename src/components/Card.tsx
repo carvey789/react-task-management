@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 import calendar from "dayjs/plugin/calendar";
 import { CSS } from "@dnd-kit/utilities";
 import { UniqueIdentifier } from "@dnd-kit/core";
-import { Checkbox } from "@material-tailwind/react";
 import { AnimateLayoutChanges, useSortable } from "@dnd-kit/sortable";
 import {
   BsTagFill,
@@ -31,7 +30,6 @@ export const CardComp = ({
   cardDesc,
   cardDueDate,
   cardLabels,
-  cardPriority,
   cardChildren,
   cardDepth,
   isCollapse,
@@ -79,7 +77,7 @@ export const CardComp = ({
           <BsGrid3X2GapFill className="rotate-90 h-3 text-slate-600" />
         </button>
         <button
-          onClick={handleCollapse ? () => handleCollapse(id) : null}
+          onClick={handleCollapse ? () => handleCollapse(id) : undefined}
           className={`${
             cardChildren.length ? "flex" : "hidden pointer-events-none"
           } ${

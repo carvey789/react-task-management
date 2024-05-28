@@ -1,5 +1,5 @@
 import { arrayMove } from "@dnd-kit/sortable";
-import { Card, FlattenedCard, Section } from "../types/types";
+import { Card, FlattenedCard } from "../types/types";
 import { UniqueIdentifier } from "@dnd-kit/core";
 
 const getDragDepth = (offset: number, indentationWidth: number) => {

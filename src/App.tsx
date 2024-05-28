@@ -1,11 +1,4 @@
 import { useEffect } from "react";
-import {
-  DndContext,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
 
 import { db } from "./db/db";
 import { useStore } from "./stores/stores";

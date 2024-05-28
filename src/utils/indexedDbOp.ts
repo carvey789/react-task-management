@@ -43,7 +43,7 @@ export const updateCardOnSectionDb = async (
     }
   });
 
-  const id = await db.sections
+  await db.sections
     .where("sectionId")
     .equals(sectionId)
     .modify({ sectionCards: newCards });

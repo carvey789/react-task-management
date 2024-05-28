@@ -31,7 +31,6 @@ import {
   flattenTree,
   getProjection,
   removeChildrenOf,
-  removeItem,
   setProperty,
 } from "../utils/utils";
 
@@ -170,9 +169,9 @@ export const SectionComp = ({ section }: { section: Section }) => {
     document.body.style.setProperty("cursor", "");
   };
 
-  const handleRemove = (id: UniqueIdentifier) => {
-    setCards((items) => removeItem(items, id));
-  };
+  // const handleRemove = (id: UniqueIdentifier) => {
+  //   setCards((items) => removeItem(items, id));
+  // };
 
   const handleCollapse = (id: UniqueIdentifier) => {
     setCards((cards) =>
@@ -191,6 +190,8 @@ export const SectionComp = ({ section }: { section: Section }) => {
 
   useEffect(() => {
     const updateDbSection = async () => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       await db.sections.update(id, { sectionCards: cards });
     };
 
