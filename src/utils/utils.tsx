@@ -179,24 +179,6 @@ export function findItem(cards: Card[], itemId: UniqueIdentifier) {
   return cards.find(({ id }) => id === itemId);
 }
 
-export function removeItem(cards: Card[], id: UniqueIdentifier) {
-  const newCards = [];
-
-  for (const card of cards) {
-    if (card.id === id) {
-      continue;
-    }
-
-    if (card.cardChildren.length) {
-      card.cardChildren = removeItem(card.cardChildren, id);
-    }
-
-    newCards.push(card);
-  }
-
-  return newCards;
-}
-
 export function setProperty<T extends keyof Card>(
   cards: Card[],
   id: UniqueIdentifier,
@@ -204,8 +186,17 @@ export function setProperty<T extends keyof Card>(
   setter: (value: Card[T]) => Card[T]
 ) {
   for (const card of cards) {
-    if (card.id === id) {
+    if (card.id === id || card.cardParentId === id) {
       card[property] = setter(card[property]);
+      if (property === "isCollapse") continue;
+      if (card.cardChildren.length) {
+        card.cardChildren = setProperty(
+          card.cardChildren,
+          card.id,
+          property,
+          setter
+        );
+      }
       continue;
     }
 
@@ -216,3 +207,56 @@ export function setProperty<T extends keyof Card>(
 
   return [...cards];
 }
+
+export const getTotalCard = (cards: Card[], sectionId: string) => {
+  const flattenedTree = flattenTree(cards, sectionId);
+
+  return flattenedTree.reduce(
+    (acc, curr) => (curr.cardSectionId === sectionId ? acc + 1 : acc),
+    0
+  );
+};
+
+export const editCardById = (
+  card: Card,
+  id: UniqueIdentifier,
+  updatedCard: Card
+) => {
+  if (card.id === id) return (card = Object.assign(card, updatedCard));
+
+  if (card.cardChildren) {
+    for (const cardChild of card.cardChildren) {
+      editCardById(cardChild, id, updatedCard);
+    }
+  }
+};
+
+export const editCardsById = (
+  cards: Card[],
+  id: UniqueIdentifier,
+  updatedCard: Card
+) => {
+  cards.forEach((card) => {
+    editCardById(card, id, updatedCard);
+  });
+};
+
+// export const deepReplace = (cards: Card[], id: UniqueIdentifier, updatedCard: Card) => {
+//   return cards.map(card => {
+//     if(card.id === id) {
+
+//       return card
+//     }
+//   })
+
+//   if (obj.type === 'A') {
+//     if  (obj.children.length) {
+//       obj.children = obj.children.map((childObj) => deepReplace(childObj, obj.path))
+//     }
+//     return obj;
+//   };
+//   if (obj.type === 'B') {
+//     const id = '002';
+//     return { id, type: "A", value: "aaaaa",  path: [...prevPath, id],  data: {}, children: []};
+//   };
+// };

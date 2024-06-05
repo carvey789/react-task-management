@@ -10,7 +10,7 @@ function App() {
 
   useEffect(() => {
     const getIndexeddbData = async () => {
-      const indexedSections = await db.sections.toArray();
+      const indexedSections = await db.sections.orderBy("order").toArray();
       const indexedLabels = await db.labels.toArray();
 
       setSections(indexedSections);
@@ -24,9 +24,9 @@ function App() {
 
   return (
     <div className="relative">
-      <div className="h-screen max-w-[50%] mx-auto">
+      <div className="h-screen max-w-[50%] mx-auto pb-10">
         {sections.map((section) => (
-          <SectionComp key={section.id} section={section} />
+          <SectionComp key={section.sectionId} section={section} />
         ))}
       </div>
     </div>

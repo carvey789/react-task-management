@@ -9,8 +9,8 @@ export const TimePicker = ({
   timeValue,
   setTimeValue,
 }: {
-  selectedDate: Date;
-  setSelectedDate: React.Dispatch<React.SetStateAction<Date>>;
+  selectedDate?: Date;
+  setSelectedDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
   timeValue: string;
   setTimeValue: React.Dispatch<React.SetStateAction<string>>;
 }) => {
@@ -33,7 +33,7 @@ export const TimePicker = ({
         .set("hour", Number(hour))
         .set("minute", Number(minute))
         .toDate();
-      setSelectedDate(newDate);
+      setSelectedDate!(newDate);
       setIsTimePickerOpen(false);
     }
   };

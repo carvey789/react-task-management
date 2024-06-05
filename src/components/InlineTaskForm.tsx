@@ -5,15 +5,25 @@ import { v4 as uuidv4 } from "uuid";
 import { DatetimePicker } from "./DatetimePicker";
 import { useStore } from "../stores/stores";
 import { Card } from "../types/types";
+import { PriorityPicker } from "./PriorityPicker";
+import { UniqueIdentifier } from "@dnd-kit/core";
 
 export const InlineTaskForm = ({
+  card: editedCard,
+  isEditMode = false,
+  isEditFormOpen,
+  setIsEditFormOpen,
   sectionId,
   addCardToSection,
+  handleSubmitEdit,
 }: {
-  id?: number;
-  sectionId: string;
-  sectionCards: Card[];
-  addCardToSection: (card: Card) => void;
+  card?: Card;
+  isEditMode: boolean;
+  isEditFormOpen?: boolean;
+  setIsEditFormOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  sectionId?: string;
+  addCardToSection?: (card: Card) => void;
+  handleSubmitEdit?: (id: UniqueIdentifier, updatedCard: Card) => void;
 }) => {
   const { isModalOpen, setModalOpen, setModalClose } = useStore(
     (state) => state
@@ -21,9 +31,10 @@ export const InlineTaskForm = ({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [textAreaValue, setTextAreaValue] = useState("");
   const [inputValue, setInputValue] = useState("");
-  const [selectedDate, setSelectedDate] = useState(
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     dayjs(new Date()).endOf("day").toDate()
   );
+  const [selectedPriority, setSelectedPriority] = useState<number | null>(null);
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -40,22 +51,36 @@ export const InlineTaskForm = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const card: Card = {
-      id: uuidv4(),
+      id: isEditMode ? editedCard!.id : uuidv4(),
       cardTitle: inputValue,
       cardDesc: textAreaValue,
-      cardIsDone: false,
+      cardIsDone: isEditMode ? editedCard!.cardIsDone : false,
       cardDueDate: selectedDate,
-      cardChildren: [],
-      cardParentId: "",
-      cardSectionId: sectionId,
-      isCollapse: false,
+      cardChildren: isEditMode ? editedCard!.cardChildren : [],
+      cardParentId: isEditMode ? editedCard!.cardParentId : "",
+      cardSectionId: isEditMode ? editedCard!.cardSectionId : sectionId!,
+      isCollapse: isEditMode ? editedCard!.isCollapse : false,
+      cardPriority: selectedPriority,
     };
 
-    addCardToSection(card);
-
-    setIsFormOpen(false);
-    setModalClose();
+    if (isEditMode) {
+      handleSubmitEdit && handleSubmitEdit(editedCard!.id, card);
+      setIsEditFormOpen && setIsEditFormOpen(false);
+    } else {
+      addCardToSection && addCardToSection(card);
+      setIsFormOpen(false);
+      setModalClose();
+    }
   };
+
+  useEffect(() => {
+    if (editedCard) {
+      setInputValue(editedCard.cardTitle);
+      setTextAreaValue(editedCard.cardDesc || "");
+      setSelectedDate(editedCard.cardDueDate);
+      setSelectedPriority(editedCard.cardPriority || null);
+    }
+  }, [editedCard]);
 
   useEffect(() => {
     if (textAreaRef && textAreaRef.current) {
@@ -64,7 +89,7 @@ export const InlineTaskForm = ({
 
       textAreaRef.current.style.height = scrollHeight + "px";
     }
-  }, [textAreaRef, textAreaValue, isFormOpen]);
+  }, [textAreaRef, textAreaValue, isFormOpen, isEditFormOpen]);
 
   useEffect(() => {
     if (!isFormOpen) {
@@ -78,8 +103,17 @@ export const InlineTaskForm = ({
   }, [isFormOpen, setModalClose, setModalOpen]);
 
   return (
-    <div className="ml-7 mt-2 py-2">
-      <form className={`${isFormOpen ? "block" : "hidden"} `} action="">
+    <div className={`ml-7 py-2 w-full ${isEditMode && "ml-0"}`}>
+      <form
+        className={`${
+          isFormOpen
+            ? "block"
+            : isEditMode && isEditFormOpen
+            ? "block"
+            : "hidden"
+        } `}
+        action=""
+      >
         <div className="w-full flex flex-col p-3 border border-gray-500/20 rounded-lg text-sm">
           <input
             name="taskTitle"
@@ -98,16 +132,24 @@ export const InlineTaskForm = ({
             ref={textAreaRef}
             onChange={handleTextAreaChange}
           />
-          <div className="my-2">
+          <div className="my-2 flex gap-3">
             <DatetimePicker
               selectedDate={selectedDate}
               setSelectedDate={setSelectedDate}
+            />
+            <PriorityPicker
+              selectedPriority={selectedPriority}
+              setSelectedPriority={setSelectedPriority}
             />
           </div>
           <div className="border-t  pt-2 flex justify-end gap-2">
             <button
               type="button"
-              onClick={() => setIsFormOpen(false)}
+              onClick={
+                isEditMode && setIsEditFormOpen
+                  ? () => setIsEditFormOpen(false)
+                  : () => setIsFormOpen(false)
+              }
               className="px-3 py-2 rounded-md bg-slate-100 font-semibold text-black/80 hover:bg-slate-300"
             >
               Cancel
@@ -117,14 +159,14 @@ export const InlineTaskForm = ({
               onClick={handleSubmit}
               className="px-3 py-2 rounded-md bg-red-600 font-semibold text-white hover:bg-red-accent disabled:bg-red-accent/20"
             >
-              Add task
+              {isEditMode ? "Save task" : "Add task"}
             </button>
           </div>
         </div>
       </form>
       <button
         onClick={() => setIsFormOpen(true)}
-        className={`${
+        className={`${isEditMode && "hidden"} ${
           isModalOpen
             ? "opacity-0 cursor-not-allowed"
             : "opacity-100 cursor-pointer"

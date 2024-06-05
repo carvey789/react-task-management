@@ -12,8 +12,8 @@ export const DatetimePicker = ({
   selectedDate,
   setSelectedDate,
 }: {
-  selectedDate: Date;
-  setSelectedDate: React.Dispatch<React.SetStateAction<Date>>;
+  selectedDate?: Date;
+  setSelectedDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
 }) => {
   const [isDatetimePickerOpen, setIsDatetimePickerOpen] = useState(false);
   const [timeValue, setTimeValue] = useState("23:59");

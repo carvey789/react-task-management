@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { BsChevronDown, BsChevronRight } from "react-icons/bs";
+import { BsChevronDown, BsChevronRight, BsTrashFill } from "react-icons/bs";
 import {
   SortableContext,
   arrayMove,
@@ -28,24 +28,23 @@ import { sortableTreeKeyboardCoordinates } from "../utils/keyboardCoordinates";
 import { Card, FlattenedCard, Section, SensorContext } from "../types/types";
 import {
   buildTree,
+  editCardsById,
   flattenTree,
   getProjection,
+  getTotalCard,
+  removeCard,
   removeChildrenOf,
   setProperty,
 } from "../utils/utils";
 
 import { dropAnimationConfig } from "../configs/dnd-config";
 import { db } from "../db/db";
+import { InlineSectionForm } from "./InlineSectionForm";
+import { useStore } from "../stores/stores";
 
 export const SectionComp = ({ section }: { section: Section }) => {
-  const {
-    id,
-    sectionId,
-    sectionTitle,
-    sectionCards,
-    sectionTotalAllCards,
-    isCollapse,
-  } = section;
+  const { sections, setSections } = useStore();
+  const { id, sectionId, sectionTitle, sectionCards, isCollapse } = section;
   const indentationWidth = 28;
   const [isSectionOpen, setIsSectionOpen] = useState(!isCollapse);
   const [cards, setCards] = useState(sectionCards);
@@ -54,6 +53,13 @@ export const SectionComp = ({ section }: { section: Section }) => {
   );
   const [overCardId, setOverCardId] = useState<UniqueIdentifier | null>(null);
   const [offsetLeft, setOffsetLeft] = useState(0);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [tobeDeletedCard, setTobeDeletedCard] = useState<Card | undefined>(
+    undefined
+  );
+  const [tobeDeletedSection, setTobeDeletedSection] = useState<
+    number | undefined
+  >(undefined);
 
   const addCardToSection = (card: Card) => {
     const newCards = [...cards, card];
@@ -169,16 +175,76 @@ export const SectionComp = ({ section }: { section: Section }) => {
     document.body.style.setProperty("cursor", "");
   };
 
-  // const handleRemove = (id: UniqueIdentifier) => {
-  //   setCards((items) => removeItem(items, id));
-  // };
-
   const handleCollapse = (id: UniqueIdentifier) => {
     setCards((cards) =>
-      setProperty(cards, id, "isCollapse", (value) => {
-        return !value;
+      setProperty(cards, id, "isCollapse", () => {
+        return true;
       })
     );
+  };
+
+  const handleUncollapse = (id: UniqueIdentifier) => {
+    setCards((cards) =>
+      setProperty(cards, id, "isCollapse", () => {
+        return false;
+      })
+    );
+  };
+
+  const handleDone = (id: UniqueIdentifier) => {
+    setCards((cards) =>
+      setProperty(cards, id, "cardIsDone", () => {
+        return true;
+      })
+    );
+  };
+
+  const handleUndone = (id: UniqueIdentifier) => {
+    setCards((cards) =>
+      setProperty(cards, id, "cardIsDone", () => {
+        return false;
+      })
+    );
+  };
+
+  const handleSubmitEdit = (id: UniqueIdentifier, updatedCard: Card) => {
+    setCards((cards) => {
+      const cardCopy = [...cards];
+      editCardsById(cardCopy, id, updatedCard);
+      return cardCopy;
+    });
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setTobeDeletedCard(undefined);
+    setTobeDeletedSection(undefined);
+  };
+
+  const handleClickDeleteCard = (card: Card) => {
+    setIsDeleteModalOpen(true);
+    setTobeDeletedCard(card);
+  };
+
+  const handleClickDeleteSection = () => {
+    setIsDeleteModalOpen(true);
+    setTobeDeletedSection(id);
+  };
+
+  const handleRemoveCard = () => {
+    if (tobeDeletedCard) {
+      setCards((cards) => removeCard(cards, tobeDeletedCard.id));
+      setIsDeleteModalOpen(false);
+    }
+  };
+
+  const handleRemoveSection = async () => {
+    if (tobeDeletedSection) {
+      await db.sections.delete(tobeDeletedSection);
+      setSections(
+        sections.filter((section) => section.id != tobeDeletedSection)
+      );
+    }
   };
 
   useEffect(() => {
@@ -201,7 +267,7 @@ export const SectionComp = ({ section }: { section: Section }) => {
   return (
     <>
       <div>
-        <span className="flex">
+        <span className="relative flex group">
           <button
             onClick={() => setIsSectionOpen((isSectionOpen) => !isSectionOpen)}
             className="w-6 h-6 flex justify-center items-center rounded-md mr-1 hover:bg-black/5"
@@ -215,9 +281,18 @@ export const SectionComp = ({ section }: { section: Section }) => {
           <span className="flex items-center text-sm w-full font-bold border-b border-black/10 pb-2">
             {sectionTitle}{" "}
             <span className="font-light text-xs ml-1">
-              {sectionTotalAllCards}
+              {getTotalCard(cards, sectionId)}
             </span>
           </span>
+          <div className="absolute z-10 top-0 right-0 flex bg-white rounded-sm backdrop-blur-sm">
+            <button
+              className="outline-none flex justify-center mr-[2px] items-center mt-[6px] rounded-md cursor-pointer transition-opacity opacity-0 group-hover:opacity-100"
+              type="button"
+              onClick={handleClickDeleteSection}
+            >
+              <BsTrashFill className="h-3 text-slate-600 hover:text-slate-900" />
+            </button>
+          </div>
         </span>
       </div>
       <div className={`${isSectionOpen ? "block" : "hidden"}`}>
@@ -242,6 +317,11 @@ export const SectionComp = ({ section }: { section: Section }) => {
                   key={card.id}
                   indentationWidth={indentationWidth}
                   handleCollapse={handleCollapse}
+                  handleUncollapse={handleUncollapse}
+                  handleDone={handleDone}
+                  handleUndone={handleUndone}
+                  handleSubmitEdit={handleSubmitEdit}
+                  handleClickDelete={handleClickDeleteCard}
                   cardDepth={
                     card.id === activeCardId ? projected?.depth : card.cardDepth
                   }
@@ -267,14 +347,57 @@ export const SectionComp = ({ section }: { section: Section }) => {
         </DndContext>
       </div>
       <InlineTaskForm
-        id={id}
         sectionId={sectionId}
-        sectionCards={cards}
         addCardToSection={addCardToSection}
+        isEditMode={false}
       />
-      <button className="w-full py-2 flex items-center opacity-0 transition-all text-sm font-bold border-none text-red-accent hover:opacity-100 before:mr-[10px] before:bg-red-accent before:content-[''] before:block before:h-[1px] before:opacity-50 before:flex-auto after:ml-[10px] after:bg-red-accent after:content-[''] after:block after:h-[1px] after:opacity-50 after:flex-auto">
-        Add Section
-      </button>
+      <InlineSectionForm sectionId={sectionId} />
+      <div
+        onClick={handleCancelDelete}
+        className={`${
+          isDeleteModalOpen ? "flex" : "hidden"
+        } absolute top-0 left-0 z-[100] w-screen h-screen overflow-hidden bg-slate-300/30`}
+      ></div>
+      <div
+        className={`absolute z-[120] top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${
+          isDeleteModalOpen ? "flex" : "hidden"
+        }  bg-white rounded-md p-4 flex-col items-end`}
+      >
+        <p className="text-sm">
+          Are you sure want to delete{" "}
+          <span className="font-bold">
+            {tobeDeletedSection
+              ? sectionTitle
+              : tobeDeletedCard
+              ? tobeDeletedCard.cardTitle
+              : "this"}{" "}
+          </span>
+          ?
+        </p>
+        <div className="mt-4 flex flex-row-reverse text-sm gap-2">
+          <button
+            className="px-2 py-1 rounded-md bg-red-600 font-semibold text-white hover:bg-red-accent disabled:bg-red-accent/20"
+            type="button"
+            onClick={
+              tobeDeletedCard
+                ? handleRemoveCard
+                : tobeDeletedSection
+                ? handleRemoveSection
+                : undefined
+            }
+          >
+            Delete{" "}
+            {tobeDeletedSection ? "section" : tobeDeletedCard ? "task" : ""}
+          </button>
+          <button
+            type="button"
+            onClick={handleCancelDelete}
+            className="px-2 py-1 rounded-md bg-transparent font-semibold text-black/80 hover:bg-slate-100"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
     </>
   );
 };

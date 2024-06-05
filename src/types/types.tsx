@@ -1,7 +1,7 @@
 import { UniqueIdentifier } from "@dnd-kit/core";
 import { MutableRefObject } from "react";
 
-enum Priority {
+export enum Priority {
   VeryHigh,
   High,
   Medium,
@@ -10,12 +10,12 @@ enum Priority {
 }
 
 export interface Section {
-  id: number;
+  id?: number;
   sectionId: string;
   sectionTitle: string;
   sectionCards: Card[];
-  sectionTotalAllCards: number;
   isCollapse: boolean;
+  order?: number;
 }
 
 export type Label = {
@@ -29,7 +29,7 @@ export interface Card {
   cardTitle: string;
   cardDesc?: string;
   cardDueDate?: Date;
-  cardPriority?: Priority;
+  cardPriority?: number | null;
   cardSectionId: string;
   cardParentId?: UniqueIdentifier;
   cardIsDone: boolean;

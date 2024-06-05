@@ -12,6 +12,7 @@ export const data: Data = {
   sections: [
     {
       id: 0,
+      order: 0,
       sectionId: "0",
       sectionTitle: "Routines 🔁",
       sectionCards: [
@@ -113,12 +114,12 @@ export const data: Data = {
           isCollapse: true,
         },
       ],
-      sectionTotalAllCards: 4,
       isCollapse: false,
     },
     {
       id: 1,
       sectionId: "1",
+      order: 1,
       sectionTitle: "Inspiration ✨",
       sectionCards: [
         {
@@ -149,7 +150,6 @@ export const data: Data = {
           isCollapse: false,
         },
       ],
-      sectionTotalAllCards: 2,
       isCollapse: false,
     },
   ],
