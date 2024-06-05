@@ -189,7 +189,7 @@ export const CardComp = ({
             </div>
             <Checkbox
               isDragging={isDragging}
-              priority={cardPriority || 4}
+              priority={cardPriority || cardPriority === 0 ? cardPriority : 4}
               handleDone={handleDone ? () => handleDone(id) : undefined}
               cardIsDone={cardIsDone}
               handleUndone={handleUndone ? () => handleUndone(id) : undefined}

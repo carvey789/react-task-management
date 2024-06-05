@@ -39,9 +39,7 @@ export const PriorityPicker = ({
     e.preventDefault();
     const id = e.currentTarget.id;
 
-    console.log(Priority["VeryHigh"]);
     const value = Priority[id as keyof typeof Priority];
-    console.log(value);
     setSelectedPriority(value);
     setIsPriorityOpen(false);
   };

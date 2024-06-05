@@ -78,7 +78,9 @@ export const InlineTaskForm = ({
       setInputValue(editedCard.cardTitle);
       setTextAreaValue(editedCard.cardDesc || "");
       setSelectedDate(editedCard.cardDueDate);
-      setSelectedPriority(editedCard.cardPriority || null);
+      setSelectedPriority(
+        editedCard.cardPriority === 0 ? editedCard.cardPriority : null
+      );
     }
   }, [editedCard]);
 
@@ -96,6 +98,7 @@ export const InlineTaskForm = ({
       setInputValue("");
       setTextAreaValue("");
       setSelectedDate(dayjs(new Date()).endOf("day").toDate());
+      setSelectedPriority(null);
       setModalClose();
     } else {
       setModalOpen();

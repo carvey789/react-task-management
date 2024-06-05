@@ -239,7 +239,7 @@ export const SectionComp = ({ section }: { section: Section }) => {
   };
 
   const handleRemoveSection = async () => {
-    if (tobeDeletedSection) {
+    if (tobeDeletedSection || tobeDeletedSection === 0) {
       await db.sections.delete(tobeDeletedSection);
       setSections(
         sections.filter((section) => section.id != tobeDeletedSection)
@@ -258,7 +258,7 @@ export const SectionComp = ({ section }: { section: Section }) => {
     const updateDbSection = async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      await db.sections.update(id, { sectionCards: cards });
+      await db.sections.update(id as number, { sectionCards: cards });
     };
 
     updateDbSection();
@@ -366,7 +366,7 @@ export const SectionComp = ({ section }: { section: Section }) => {
         <p className="text-sm">
           Are you sure want to delete{" "}
           <span className="font-bold">
-            {tobeDeletedSection
+            {tobeDeletedSection || tobeDeletedSection === 0
               ? sectionTitle
               : tobeDeletedCard
               ? tobeDeletedCard.cardTitle
@@ -381,7 +381,7 @@ export const SectionComp = ({ section }: { section: Section }) => {
             onClick={
               tobeDeletedCard
                 ? handleRemoveCard
-                : tobeDeletedSection
+                : tobeDeletedSection || tobeDeletedSection === 0
                 ? handleRemoveSection
                 : undefined
             }
