@@ -8,7 +8,7 @@ export class TaskManagementDexie extends Dexie {
 
   constructor() {
     super("task-management-carveych");
-    this.version(1).stores({
+    this.version(3).stores({
       sections:
         "++id, sectionId, sectionTitle, sectionCards, sectionTotalAllCards, isCollapse, order",
       labels: "++id, labelId, labelTitle",
