@@ -46,6 +46,8 @@ export const InlineSectionForm = ({ sectionId }: { sectionId: string }) => {
         },
       }));
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       await db.sections.bulkUpdate(tobeUpdateBulkSection);
 
       setSections(newSectionOrder);
